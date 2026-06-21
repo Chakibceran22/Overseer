@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { ArgonModule } from './argon/argon.module';
 import * as Joi from 'joi';
 import { join } from 'path';
+import { JwtUserModule } from './jwt-user/jwt-user.module';
 
 @Module({
   imports: [
@@ -29,6 +30,10 @@ import { join } from 'path';
 
         //hashing options
         HASH_SECRET: Joi.string().required(),// generate by this command openssl rand -base64 32
+
+        //JWT config
+        JWT_ACCESS_SECRET: Joi.string().required(),
+        JWT_REFRESH_SECRET:Joi.string().required()
         
       }),
       validationOptions: {
@@ -39,6 +44,8 @@ import { join } from 'path';
     DbModule,
     UserModule,
     ArgonModule,
+
+    JwtUserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

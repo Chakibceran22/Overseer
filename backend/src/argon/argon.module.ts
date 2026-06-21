@@ -3,6 +3,7 @@ import { ArgonService } from './argon.service';
 
 @Module({
 
-  providers: [ArgonService]
+  providers: [ArgonService],
+  exports:[ArgonService]
 })
 export class ArgonModule {}
