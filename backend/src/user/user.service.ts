@@ -1,17 +1,17 @@
-import { HttpException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { HttpException, Inject, Injectable, InternalServerErrorException, LoggerService, UnauthorizedException } from '@nestjs/common';
 import { ArgonService } from 'src/argon/argon.service';
 import { UserRepo } from './user.repo';
 import { JwtUserService } from 'src/jwt-user/jwt-user.service';
-import { threadId } from 'worker_threads';
-import { AuthResponseDTO } from './dto/auth-reponse.dto';
 import { NewUser } from 'src/db/schema';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class UserService {
     constructor(
         private readonly argonService: ArgonService,
         private readonly userRepo: UserRepo,
-        private readonly jwtUserService: JwtUserService
+        private readonly jwtUserService: JwtUserService,
+        @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService
     ) { }
     async login(username: string, password: string) {
         try {
@@ -29,7 +29,9 @@ export class UserService {
 
             return await this.jwtUserService.signToken(user.id, user.username)
         } catch (error) {
-            throw new InternalServerErrorException()
+            if (error instanceof HttpException) throw error;
+            this.logger.error(error);
+            throw new InternalServerErrorException();
         }
 
     }
@@ -45,9 +47,34 @@ export class UserService {
 
             return await this.jwtUserService.signToken(user.id, user.username)
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error?.code === '23505') {
+                this.logger.warn(`Signup blocked: duplicate username "${username}"`);
+                throw new InternalServerErrorException();
+            }
+            this.logger.error(error);
             throw new InternalServerErrorException();
         }
 
     }
+
+    async refreshToken(token: string) {
+        if (!token) {
+            throw new UnauthorizedException("No Refresh token found")
+        }
+
+        try {
+            const payload = await this.jwtUserService.verifyRefresh(token);
+            const { accessToken, refreshToken } = await this.jwtUserService.signToken(payload.sub, payload.username)
+        return {
+            accessToken,
+            refreshToken
+        }
+        } catch (error) {
+            throw new UnauthorizedException('Invalid or expired token')
+        }
+
+    }
+
+    
 }

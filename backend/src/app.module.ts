@@ -9,6 +9,7 @@ import { ArgonModule } from './argon/argon.module';
 import * as Joi from 'joi';
 import { join } from 'path';
 import { JwtUserModule } from './jwt-user/jwt-user.module';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -44,7 +45,7 @@ import { JwtUserModule } from './jwt-user/jwt-user.module';
     DbModule,
     UserModule,
     ArgonModule,
-
+     LoggerModule,
     JwtUserModule,
   ],
   controllers: [AppController],

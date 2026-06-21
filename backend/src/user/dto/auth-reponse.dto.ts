@@ -1,4 +1,5 @@
 export class AuthResponseDTO {
-    accessToken!: string;
-    refreshToken!: string;
+  success!: boolean;
+  message!: string;
+  accessToken!: string;
 }

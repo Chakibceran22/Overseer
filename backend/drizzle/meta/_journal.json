@@ -15,6 +15,13 @@
       "when": 1782065057898,
       "tag": "0001_busy_namor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782077176002,
+      "tag": "0002_nifty_scourge",
+      "breakpoints": true
     }
   ]
 }
