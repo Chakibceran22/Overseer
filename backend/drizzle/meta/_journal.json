@@ -8,6 +8,13 @@
       "when": 1781656972771,
       "tag": "0000_easy_psylocke",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782065057898,
+      "tag": "0001_busy_namor",
+      "breakpoints": true
     }
   ]
 }
