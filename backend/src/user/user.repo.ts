@@ -9,9 +9,9 @@ import { users, NewUser } from '../db/schema';
 export class UserRepo {
     constructor(@Inject(DB) private readonly db:Database) {}
 
-    findByUsername(username: string) {
+    findByEmail(email: string) {
         return this.db.query.users.findFirst({
-            where: eq(users.username, username)
+            where: eq(users.email, email)
         })
     }
 

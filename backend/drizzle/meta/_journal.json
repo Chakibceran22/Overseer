@@ -22,6 +22,13 @@
       "when": 1782077176002,
       "tag": "0002_nifty_scourge",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782124195572,
+      "tag": "0003_mysterious_venus",
+      "breakpoints": true
     }
   ]
 }

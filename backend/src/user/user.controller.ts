@@ -13,7 +13,7 @@ export class UserController {
         @Body() loginDTO: AuthDTO,
         @Res({ passthrough: true }) res: Response
     ): Promise<AuthResponseDTO> {
-        const { accessToken, refreshToken } = await this.userService.login(loginDTO.username, loginDTO.password)
+        const { accessToken, refreshToken } = await this.userService.login(loginDTO.email, loginDTO.password)
         this.setRefreshCookie(res, refreshToken)
         return {
             accessToken,
@@ -26,7 +26,7 @@ export class UserController {
     @Post('/signup')
     async signup(@Body() signupDTO: AuthDTO,
         @Res({ passthrough: true }) res: Response): Promise<AuthResponseDTO> {
-        const { accessToken, refreshToken } = await this.userService.signup(signupDTO.username, signupDTO.password)
+        const { accessToken, refreshToken } = await this.userService.signup(signupDTO.email, signupDTO.password)
         this.setRefreshCookie(res, refreshToken)
         return {
             accessToken,

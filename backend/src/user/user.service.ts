@@ -13,9 +13,9 @@ export class UserService {
         private readonly jwtUserService: JwtUserService,
         @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService
     ) { }
-    async login(username: string, password: string) {
+    async login(email: string, password: string) {
         try {
-            const user = await this.userRepo.findByUsername(username)
+            const user = await this.userRepo.findByEmail(email)
             if (!user) {
                 throw new UnauthorizedException('Invalid Credentials')
             }
@@ -27,7 +27,7 @@ export class UserService {
                 throw new UnauthorizedException('Invalid Credentials')
             }
 
-            return await this.jwtUserService.signToken(user.id, user.username)
+            return await this.jwtUserService.signToken(user.id, user.email)
         } catch (error) {
             if (error instanceof HttpException) throw error;
             this.logger.error(error);
@@ -36,20 +36,20 @@ export class UserService {
 
     }
 
-    async signup(username: string, password: string) {
+    async signup(email: string, password: string) {
         try {
             const hashedPassword = await this.argonService.hashPlain(password);
             const data: NewUser = {
-                username: username,
+                email: email,
                 password: hashedPassword
             }
             const user = await this.userRepo.createUser(data)
 
-            return await this.jwtUserService.signToken(user.id, user.username)
+            return await this.jwtUserService.signToken(user.id, user.email)
 
         } catch (error: any) {
             if (error?.code === '23505') {
-                this.logger.warn(`Signup blocked: duplicate username "${username}"`);
+                this.logger.warn(`Signup blocked: duplicate email "${email}"`);
                 throw new InternalServerErrorException();
             }
             this.logger.error(error);
@@ -65,7 +65,7 @@ export class UserService {
 
         try {
             const payload = await this.jwtUserService.verifyRefresh(token);
-            const { accessToken, refreshToken } = await this.jwtUserService.signToken(payload.sub, payload.username)
+            const { accessToken, refreshToken } = await this.jwtUserService.signToken(payload.sub, payload.email)
         return {
             accessToken,
             refreshToken
