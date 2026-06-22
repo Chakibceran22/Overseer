@@ -10,6 +10,7 @@ import * as Joi from 'joi';
 import { join } from 'path';
 import { JwtUserModule } from './jwt-user/jwt-user.module';
 import { LoggerModule } from './logger/logger.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -34,7 +35,10 @@ import { LoggerModule } from './logger/logger.module';
 
         //JWT config
         JWT_ACCESS_SECRET: Joi.string().required(),
-        JWT_REFRESH_SECRET:Joi.string().required()
+        JWT_REFRESH_SECRET:Joi.string().required(),
+
+        //redis  auth
+        REDIS_URL: Joi.string().required()
         
       }),
       validationOptions: {
@@ -47,6 +51,7 @@ import { LoggerModule } from './logger/logger.module';
     ArgonModule,
      LoggerModule,
     JwtUserModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
