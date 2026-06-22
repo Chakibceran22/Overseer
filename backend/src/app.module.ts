@@ -36,6 +36,8 @@ import { RedisModule } from './redis/redis.module';
         //JWT config
         JWT_ACCESS_SECRET: Joi.string().required(),
         JWT_REFRESH_SECRET:Joi.string().required(),
+        JWT_REFRESH_TTL: Joi.number().required(),
+        JWT_ACCESS_TTL: Joi.number().required(),
 
         //redis  auth
         REDIS_URL: Joi.string().required()

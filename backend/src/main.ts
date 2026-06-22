@@ -19,6 +19,7 @@ async function bootstrap() {
       transform: true
     })
   )
+  app.enableShutdownHooks();
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS,
     credentials: true,              

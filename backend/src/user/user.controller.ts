@@ -51,7 +51,12 @@ export class UserController {
     }
 
     @Post('/logout')
-    logout(@Res({ passthrough: true }) res: Response): AuthResponseDTO {
+    async logout(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response
+    ): Promise<AuthResponseDTO> {
+        const token = req.cookies?.['refreshToken'];
+        await this.userService.logout(token)
         this.clearCookie(res)
         return { accessToken: '', success: true, message: 'Logged out' };
     }
@@ -62,7 +67,7 @@ export class UserController {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            path: '/user/refresh',
+            path: '/user',
             maxAge: 24 * 60 * 60 * 1000,
         });
     }
@@ -72,7 +77,7 @@ export class UserController {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            path: '/user/refresh',
+            path: '/user',
         });
     }
 

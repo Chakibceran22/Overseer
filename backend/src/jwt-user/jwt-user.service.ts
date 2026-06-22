@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './jwt-user.interface';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class JwtUserService {
@@ -10,22 +11,25 @@ export class JwtUserService {
         private readonly config: ConfigService
     ) { }
 
-    async signToken(userId: string, username: string) {
-        const payload = { sub: userId, username };
+    async signToken(userId: string, email: string) {
+        const jti = randomUUID();
+        const accessPayload = { sub: userId, email };
+        const refreshPayload = { sub: userId, email, jti };
 
         const [accessToken, refreshToken] = await Promise.all([
-            this.jwt.signAsync(payload, {
+            this.jwt.signAsync(accessPayload, {
                 secret: this.config.getOrThrow('JWT_ACCESS_SECRET'),
-                expiresIn: '15m'
+                expiresIn: this.config.getOrThrow<number>('JWT_ACCESS_TTL')
             }),
-            this.jwt.signAsync(payload, {
+            this.jwt.signAsync(refreshPayload, {
                 secret: this.config.getOrThrow('JWT_REFRESH_SECRET'),
-                expiresIn: '24h'
+                expiresIn: this.config.getOrThrow<number>('JWT_REFRESH_TTL')
             })
         ])
         return {
             accessToken,
-            refreshToken
+            refreshToken,
+            jti
         }
     }
 
