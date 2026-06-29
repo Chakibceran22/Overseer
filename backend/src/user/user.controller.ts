@@ -3,11 +3,20 @@ import { AuthDTO } from './dto/auth.dto';
 import { AuthResponseDTO } from './dto/auth-reponse.dto';
 import { UserService } from './user.service';
 import { Request, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('user')
 export class UserController {
 
-    constructor(private readonly userService: UserService) { }
+    constructor(
+        private readonly userService: UserService,
+        private readonly config: ConfigService
+    ) { }
+
+    
+    private get refreshTtl(): number {
+        return this.config.getOrThrow<number>('JWT_REFRESH_TTL');
+    }
     @Post('/login')
     async login(
         @Body() loginDTO: AuthDTO,
@@ -68,7 +77,7 @@ export class UserController {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             path: '/user',
-            maxAge: 24 * 60 * 60 * 1000,
+            maxAge: this.refreshTtl * 1000,
         });
     }
 

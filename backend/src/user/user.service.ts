@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable, InternalServerErrorException, LoggerService, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, Inject, Injectable, InternalServerErrorException, LoggerService, UnauthorizedException } from '@nestjs/common';
 import { ArgonService } from 'src/argon/argon.service';
 import { UserRepo } from './user.repo';
 import { JwtUserService } from 'src/jwt-user/jwt-user.service';
@@ -25,8 +25,10 @@ export class UserService {
 
     async login(email: string, password: string) {
         try {
+            this.logger.log(`Login attempt for "${email}"`);
             const user = await this.userRepo.findByEmail(email)
             if (!user) {
+                this.logger.warn(`Login failed: no user found for "${email}"`);
                 throw new UnauthorizedException('Invalid Credentials')
             }
             const hash = user?.password
@@ -34,11 +36,13 @@ export class UserService {
             const verificationResponse = await this.argonService.verifyHash(password, hash)
 
             if (!verificationResponse) {
+                this.logger.warn(`Login failed: password mismatch for "${email}" (user ${user.id})`);
                 throw new UnauthorizedException('Invalid Credentials')
             }
 
             const { accessToken, refreshToken, jti } = await this.jwtUserService.signToken(user.id, user.email)
             await this.session.create(user.id, jti, this.refreshTtl)
+            this.logger.log(`Login success for "${email}" (user ${user.id})`);
             return { accessToken, refreshToken }
         } catch (error) {
             if (error instanceof HttpException) throw error;
@@ -63,9 +67,13 @@ export class UserService {
             return { accessToken, refreshToken }
 
         } catch (error: any) {
-            if (error?.code === '23505') {
+            // Drizzle wraps the driver error — the pg code lives on `cause`, not the top level.
+            const pgCode = error?.cause?.code ?? error?.code;
+            if (pgCode === '23505') {
+                // Log the real reason server-side ONLY — never reveal to the client that
+                // this email already exists (account-enumeration protection).
                 this.logger.warn(`Signup blocked: duplicate email "${email}"`);
-                throw new InternalServerErrorException();
+                throw new BadRequestException('Could not complete sign up. Please try again.');
             }
             this.logger.error(error);
             throw new InternalServerErrorException();
