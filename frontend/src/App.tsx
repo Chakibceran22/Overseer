@@ -18,7 +18,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
         </Routes>
       </Router>
-      <Toaster position="top-center" richColors={false} closeButton />
+      <Toaster position="top-center" richColors={false} />
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   )

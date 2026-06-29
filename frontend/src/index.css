@@ -150,3 +150,28 @@ body {
 .cn-toast [data-description] {
   color: var(--ctp-subtext-0) !important;
 }
+
+/* Per-type accents — border + title + icon share one color, same style as above */
+.cn-toast[data-type="error"] {
+  border-color: color-mix(in srgb, var(--ctp-red) 40%, transparent) !important;
+}
+.cn-toast[data-type="error"] [data-title],
+.cn-toast[data-type="error"] [data-icon] {
+  color: var(--ctp-red) !important;
+}
+
+.cn-toast[data-type="warning"] {
+  border-color: color-mix(in srgb, var(--ctp-peach) 40%, transparent) !important;
+}
+.cn-toast[data-type="warning"] [data-title],
+.cn-toast[data-type="warning"] [data-icon] {
+  color: var(--ctp-peach) !important;
+}
+
+.cn-toast[data-type="success"] {
+  border-color: color-mix(in srgb, var(--ctp-green) 40%, transparent) !important;
+}
+.cn-toast[data-type="success"] [data-title],
+.cn-toast[data-type="success"] [data-icon] {
+  color: var(--ctp-green) !important;
+}

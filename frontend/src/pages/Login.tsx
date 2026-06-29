@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from "react"
 import { motion } from "motion/react"
-import { LoaderCircle, LockKeyhole, User } from "lucide-react"
-import { Link } from "react-router-dom"
+import { LoaderCircle, LockKeyhole, Mail } from "lucide-react"
+import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
+
+import { getApiErrorMessage } from "@/lib/api"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,14 +14,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
+
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
+import { useAuth } from "@/store/useAuth"
 export const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const login = useAuth((s) => s.login)
+  const navigate = useNavigate()
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (isSubmitting) {
@@ -28,12 +34,20 @@ export const Login = () => {
 
     setIsSubmitting(true)
 
-    window.setTimeout(() => {
-      setIsSubmitting(false)
-      toast.info("Login is ready for backend integration", {
-        description: "No request is sent yet.",
+    try {
+      await login({ email, password })
+      toast.success("Signed in", {
+        description: "Welcome back to Overseer.",
       })
-    }, 650)
+      navigate("/", { replace: true })
+    } catch (error) {
+      // getApiErrorMessage maps 401 / 400 / network / 5xx to a readable message
+      toast.error("Could not sign in", {
+        description: getApiErrorMessage(error),
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -57,15 +71,17 @@ export const Login = () => {
           <CardContent className="px-5 pb-6 sm:px-7 sm:pb-7">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="email">Email</Label>
                 <div className="relative">
-                  <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--ctp-overlay-2)]" />
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--ctp-overlay-2)]" />
                   <Input
-                    id="username"
-                    name="username"
-                    type="text"
-                    autoComplete="username"
-                    placeholder="Username"
+                    id="email"
+                    name="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Email"
                     required
                     className="h-11 border-[color-mix(in_srgb,var(--ctp-surface-2)_44%,transparent)] bg-[var(--ctp-base)] pl-10 text-[var(--ctp-text)] placeholder:text-[var(--ctp-overlay-1)] focus-visible:border-[var(--ctp-primary)] focus-visible:ring-[var(--ctp-primary)]/30"
                   />
@@ -75,12 +91,7 @@ export const Login = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
                   <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="text-sm text-[var(--ctp-subtext-1)] transition-colors hover:text-[var(--ctp-primary)] focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ctp-primary)]/35"
-                  >
-                    Forgot password?
-                  </a>
+                  
                 </div>
                 <div className="relative">
                   <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--ctp-overlay-2)]" />
@@ -88,6 +99,8 @@ export const Login = () => {
                     id="password"
                     name="password"
                     type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value) }
                     autoComplete="current-password"
                     placeholder="Password"
                     required

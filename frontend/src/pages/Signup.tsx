@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react"
 import { motion } from "motion/react"
 import { Link } from "react-router-dom"
-import { LoaderCircle, LockKeyhole, User } from "lucide-react"
+import { Dessert, LoaderCircle, LockKeyhole, Mail } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -15,22 +15,26 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import type { AuthResponse } from "@/types/AuthState"
+import { useAuth } from "@/store/useAuth"
+import { getApiErrorMessage } from "@/lib/api"
 
 export const Signup = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmedPass, setConfirmPass] = useState('')
+  const {signup} = useAuth()
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (isSubmitting) {
       return
     }
 
-    const form = new FormData(event.currentTarget)
-    const password = String(form.get("password") ?? "")
-    const confirmPassword = String(form.get("confirmPassword") ?? "")
 
-    if (password !== confirmPassword) {
+    if (password !== confirmedPass) {
       toast.error("Passwords do not match", {
         description: "Please confirm the same password before signing up.",
       })
@@ -39,12 +43,23 @@ export const Signup = () => {
 
     setIsSubmitting(true)
 
-    window.setTimeout(() => {
-      setIsSubmitting(false)
-      toast.info("Signup is ready for backend integration", {
-        description: "No request is sent yet.",
+    try {
+      await signup({
+        email: email,
+        password: password
       })
-    }, 650)
+      toast.success("Account created", {
+        description: "Welcome to Overseer.",
+      })
+
+    } catch (error) {
+      toast.error("Sign up failed", {
+        description: getApiErrorMessage(error),
+      })
+    }
+    finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -61,22 +76,24 @@ export const Signup = () => {
               Create account
             </CardTitle>
             <CardDescription className="text-[var(--ctp-subtext-0)]">
-              Choose a username and password to create your account.
+              Choose an email and password to create your account.
             </CardDescription>
           </CardHeader>
 
           <CardContent className="px-5 pb-6 sm:px-7 sm:pb-7">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="signup-username">Username</Label>
+                <Label htmlFor="signup-email">Email</Label>
                 <div className="relative">
-                  <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--ctp-overlay-2)]" />
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--ctp-overlay-2)]" />
                   <Input
-                    id="signup-username"
-                    name="username"
-                    type="text"
-                    autoComplete="username"
-                    placeholder="Username"
+                    id="signup-email"
+                    name="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value) }
+                    autoComplete="email"
+                    placeholder="Email"
                     required
                     className="h-11 border-[color-mix(in_srgb,var(--ctp-surface-2)_44%,transparent)] bg-[var(--ctp-base)] pl-10 text-[var(--ctp-text)] placeholder:text-[var(--ctp-overlay-1)] focus-visible:border-[var(--ctp-primary)] focus-visible:ring-[var(--ctp-primary)]/30"
                   />
@@ -91,6 +108,8 @@ export const Signup = () => {
                     id="signup-password"
                     name="password"
                     type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
                     placeholder="Password"
                     required
@@ -107,6 +126,8 @@ export const Signup = () => {
                     id="confirm-password"
                     name="confirmPassword"
                     type="password"
+                    value={confirmedPass}
+                    onChange={(e) => setConfirmPass(e.target.value)}
                     autoComplete="new-password"
                     placeholder="Confirm password"
                     required
